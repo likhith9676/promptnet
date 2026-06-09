@@ -8,7 +8,7 @@ st.set_page_config(page_title="PromptNet MVP", page_icon="🎬", layout="centere
 
 # 2. Hardcoded Credentials Bypass
 SUPABASE_URL = "https://eqygmwwxkgxsjlygqxtz.supabase.co"
-SUPABASE_KEY = "sb_publishable_TTS_w0ZLsmJ026GiV2jwEg_GBmt127J"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxeWdtd3d4a2d4c2pseWdxeHR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzczNDMsImV4cCI6MjA5NjYxMzM0M30.UMo9yeblREC7WekrLLEv29SJltz6NkIYyw4WaGjt688"
 
 # Explicitly set the environment variable for the Fal AI client
 os.environ["FAL_KEY"] = "ba97bcc4-bcfd-4a64-95e9-d8b771732fae:0bac747c0bd994478367cdd66a5eed1b"
