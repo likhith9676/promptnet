@@ -4,7 +4,7 @@ from supabase import create_client
 import os
 
 # 1. Page Configuration
-st.set_page_config(page_title="PromptNet MVP", page_icon="🎬", layout="centered")
+st.set_page_config(page_title="PromptNet MVP", page_icon="📸", layout="centered")
 
 # 2. Hardcoded Credentials Bypass
 SUPABASE_URL = "https://eqygmwwxkgxsjlygqxtz.supabase.co"
@@ -20,51 +20,49 @@ except Exception as e:
     st.error(f"Failed to initialize database client connection: {e}")
     st.stop()
 
-st.title("🎬 PromptNet")
-st.caption("Type an idea, generate a short video, and share it with the world.")
+st.title("📸 PromptNet")
+st.caption("Type an idea, generate a stunning AI image, and share it with the world.")
 
 # Create top tabs for navigation like a social media network
-tab_create, tab_feed = st.tabs(["✨ Create Video", "🔥 Public Feed"])
+tab_create, tab_feed = st.tabs(["✨ Create Image", "🔥 Public Feed"])
 
 # --- TAB 1: THE GENERATOR ---
 with tab_create:
     st.subheader("What's on your mind?")
     user_prompt = st.text_input(
-        "Describe your short video:", 
+        "Describe your image:", 
         placeholder="A cinematic drone shot of a futuristic cyberpunk city floating in clouds..."
     )
-    
-    # Simple password protection directly in the code
-    access_password = st.text_input("Enter creator password to post:", type="password")
     
     if st.button("Generate & Post to Feed", type="primary"):
         if not user_prompt:
             st.warning("Please type a prompt first!")
-        elif access_password != "create123":  # Your password to type inside the app is: create123
-            st.error("Incorrect creator password. You can still view the Public Feed tab!")
         else:
-            with st.spinner("🤖 AI is processing your video (takes about 15-20 seconds)..."):
+            with st.spinner("🤖 AI is painting your image (takes about 2 seconds)..."):
                 try:
-                    # Using Wan 2.6 text-to-video via Fal.ai API
+                    # Using Flux Schnell (Ultra-fast, beautiful, and practically free)
                     handler = fal_client.submit(
-                        "fal-ai/wan/2.6/text-to-video",
+                        "fal-ai/flux/schnell",
                         arguments={
                             "prompt": user_prompt,
-                            "size": "480x854" # 9:16 portrait orientation for shorts/reels
+                            "image_size": "square_hd", # Options: square_hd, landscape_hd, portrait_hd
+                            "num_inference_steps": 4,
+                            "sync_mode": True
                         }
                     )
                     result = handler.get()
-                    video_url = result["video"]["url"]
+                    image_url = result["images"][0]["url"]
                     
-                    # Insert the new video asset directly into your Supabase global table
+                    # Insert the new image asset directly into your Supabase global table
+                    # Note: We reuse the 'video_url' column to hold the image URL so your DB schema doesn't break!
                     supabase.table("posts").insert({
                         "prompt": user_prompt,
-                        "video_url": video_url,
+                        "video_url": image_url,
                         "likes": 0
                     }).execute()
                     
                     st.success("🎉 Successfully generated and posted!")
-                    st.video(video_url)
+                    st.image(image_url, use_column_width=True)
                     
                 except Exception as e:
                     st.error(f"Generation failed: {e}")
@@ -79,13 +77,15 @@ with tab_feed:
         posts = response.data
         
         if not posts:
-            st.info("The feed is empty! Be the first to generate a video.")
+            st.info("The feed is empty! Be the first to generate an image.")
         
         for post in posts:
             # Container card layout for each social media post
             with st.container(border=True):
                 st.markdown(f"💡 **\"{post['prompt']}\"**")
-                st.video(post['video_url'])
+                
+                # Render as an image instead of a video
+                st.image(post['video_url'], use_column_width=True)
                 
                 col1, col2 = st.columns([1, 4])
                 with col1:
