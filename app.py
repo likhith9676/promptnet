@@ -1,24 +1,28 @@
 import streamlit as st
 import fal_client
 from supabase import create_client
+import os
 
 # 1. Page Configuration
 st.set_page_config(page_title="PromptNet MVP", page_icon="🎬", layout="centered")
 
-# 2. Connect to Supabase
-# (We fetch these securely from Streamlit's settings later)
+# 2. Hardcoded Credentials Bypass
+SUPABASE_URL = "https://eqygmwwxkgxsjlygqxtz.supabase.co"
+SUPABASE_KEY = "sb_publishable_TTS_w0ZLsmJ026GiV2jwEg_GBmt127J"
+
+# Explicitly set the environment variable for the Fal AI client
+os.environ["FAL_KEY"] = "ba97bcc4-bcfd-4a64-95e9-d8b771732fae:0bac747c0bd994478367cdd66a5eed1b"
+
 try:
-    SUPABASE_URL = st.secrets["SUPABASE_URL"]
-    SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-except Exception:
-    st.error("Database credentials missing. Please set up Streamlit Secrets.")
+except Exception as e:
+    st.error(f"Failed to initialize database: {e}")
     st.stop()
 
 st.title("🎬 PromptNet")
 st.caption("Type an idea, generate a short video, and share it with the world.")
 
-# Create top tabs for navigation like a social network
+# Create top tabs for navigation like a social media network
 tab_create, tab_feed = st.tabs(["✨ Create Video", "🔥 Public Feed"])
 
 # --- TAB 1: THE GENERATOR ---
@@ -29,18 +33,18 @@ with tab_create:
         placeholder="A cinematic drone shot of a futuristic cyberpunk city floating in clouds..."
     )
     
-    # Simple security lock so random users don't burn your free AI credits
+    # We set a simple text password here directly in the code
     access_password = st.text_input("Enter creator password to post:", type="password")
     
     if st.button("Generate & Post to Feed", type="primary"):
         if not user_prompt:
             st.warning("Please type a prompt first!")
-        elif access_password != st.secrets["APP_PASSWORD"]:
+        elif access_password != "create123":  # <--- YOUR PASSWORD IS NOW EXPLICITLY: create123
             st.error("Incorrect creator password. You can still view the Public Feed tab!")
         else:
             with st.spinner("🤖 AI is processing your video (takes about 15-20 seconds)..."):
                 try:
-                    # Using Wan 2.6 text-to-video (extremely high quality and ultra-budget cost)
+                    # Using Wan 2.6 text-to-video (high quality and ultra-budget cost)
                     handler = fal_client.submit(
                         "fal-ai/wan/2.6/text-to-video",
                         arguments={
@@ -91,5 +95,6 @@ with tab_feed:
                         st.rerun()
                 with col2:
                     st.caption(f"Posted on {post['created_at'][:10]}")
+                    
     except Exception as e:
         st.error(f"Could not load feed: {e}")
