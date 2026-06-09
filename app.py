@@ -13,10 +13,11 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 # Explicitly set the environment variable for the Fal AI client
 os.environ["FAL_KEY"] = "ba97bcc4-bcfd-4a64-95e9-d8b771732fae:0bac747c0bd994478367cdd66a5eed1b"
 
+# Create database connection safely
 try:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 except Exception as e:
-    st.error(f"Failed to initialize database: {e}")
+    st.error(f"Failed to initialize database client connection: {e}")
     st.stop()
 
 st.title("🎬 PromptNet")
@@ -33,29 +34,29 @@ with tab_create:
         placeholder="A cinematic drone shot of a futuristic cyberpunk city floating in clouds..."
     )
     
-    # We set a simple text password here directly in the code
+    # Simple password protection directly in the code
     access_password = st.text_input("Enter creator password to post:", type="password")
     
     if st.button("Generate & Post to Feed", type="primary"):
         if not user_prompt:
             st.warning("Please type a prompt first!")
-        elif access_password != "create123":  # <--- YOUR PASSWORD IS NOW EXPLICITLY: create123
+        elif access_password != "create123":  # Your password to type inside the app is: create123
             st.error("Incorrect creator password. You can still view the Public Feed tab!")
         else:
             with st.spinner("🤖 AI is processing your video (takes about 15-20 seconds)..."):
                 try:
-                    # Using Wan 2.6 text-to-video (high quality and ultra-budget cost)
+                    # Using Wan 2.6 text-to-video via Fal.ai API
                     handler = fal_client.submit(
                         "fal-ai/wan/2.6/text-to-video",
                         arguments={
                             "prompt": user_prompt,
-                            "size": "480x854" # Perfect 9:16 vertical ratio for mobile shorts
+                            "size": "480x854" # 9:16 portrait orientation for shorts/reels
                         }
                     )
                     result = handler.get()
                     video_url = result["video"]["url"]
                     
-                    # Insert the new video asset directly into the Supabase global feed
+                    # Insert the new video asset directly into your Supabase global table
                     supabase.table("posts").insert({
                         "prompt": user_prompt,
                         "video_url": video_url,
@@ -81,14 +82,14 @@ with tab_feed:
             st.info("The feed is empty! Be the first to generate a video.")
         
         for post in posts:
-            # Container for each social media card
+            # Container card layout for each social media post
             with st.container(border=True):
                 st.markdown(f"💡 **\"{post['prompt']}\"**")
                 st.video(post['video_url'])
                 
                 col1, col2 = st.columns([1, 4])
                 with col1:
-                    # Like interaction
+                    # Interactive Like system updates the row count in real-time
                     if st.button(f"❤️ {post['likes']}", key=f"like_{post['id']}"):
                         new_likes = post['likes'] + 1
                         supabase.table("posts").update({"likes": new_likes}).eq("id", post['id']).execute()
